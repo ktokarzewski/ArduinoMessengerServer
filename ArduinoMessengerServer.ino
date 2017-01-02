@@ -6,7 +6,7 @@
 #define ERROR_PIN 5
 #define IRRECV_PIN 7
 #define FACTOR 50
-//#define UIPETHRTNET_DEBUG
+
 //==================== Memory Control ==================//
 const PROGMEM char prefix[] = "SEND\n{\"resource\":\"";
 const PROGMEM char separator[] = "\",\"value\":\"";
@@ -94,11 +94,11 @@ bool extractSubsequence(char * sub) {
 
 
 void printRawCode(EthernetClient client) {
-  for (byte i = 0; i < codeLen-1; i++) {
+  for (byte i = 0; i < codeLen - 1; i++) {
     client.print(rawCodes[i] / FACTOR);
     client.print(F(" "));
   }
-  client.print(rawCodes[codeLen-1] / FACTOR);
+  client.print(rawCodes[codeLen - 1] / FACTOR);
 }
 
 void sendMessage(char * buttonId, EthernetClient client) {
@@ -120,6 +120,14 @@ void sendMessage(char * buttonId, EthernetClient client) {
   client.flush();
 }
 
+void ledsOff(){
+  digitalWrite(SEND_PIN, LOW);
+  digitalWrite(GET_PIN, LOW);
+  digitalWrite(ERROR_PIN, LOW);
+
+}
+
+
 void setup()
 {
   uint8_t mac[6] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05};
@@ -135,43 +143,43 @@ void setup()
 boolean codeReady = false;
 EthernetClient client;
 
-void loop(){
+void loop() {
   size_t size;
 
-  if (EthernetClient current = server.available()){
+  if (EthernetClient current = server.available()) {
     client = current;
 
-    if (client){
-      Serial.println(client);
-      while ((size = client.available()) > 0){
+    if (client) {
+      while ((size = client.available()) > 0) {
+        ledsOff();
         if (size < M_BUF) {
           uint8_t* msg = (uint8_t*)malloc(size);
           size = client.read(msg, size);
-          messenger.parseMessage(&m, msg, size);
+          if(!messenger.parseMessage(&m, msg, size)){
+            digitalWrite(ERROR_PIN,HIGH);
+          }
+          
           free(msg);
         }
         else {
+          digitalWrite(ERROR_PIN,HIGH);
           client.flush();
         }
       }
     }
 
   }
-  // Ethernet.maintain();
-
+  
   if (compareType(GET)) {
     digitalWrite(GET_PIN, HIGH);
     copyCodeRequest();
     irrecv.enableIRIn();
   } else if (compareType(SEND)) {
     decode(m.resource);
-    digitalWrite(SEND_PIN, HIGH);
-    sendCodeToIR(38);
-    delay(1000);
-    digitalWrite(SEND_PIN, LOW);
+    sendCodeToIR(atoi(m.value));
   }
-  
-  
+
+
   if (irrecv.decode(&results)) {
     storeCode(&results);
     irrecv.resume();
