@@ -3,13 +3,14 @@
 #include <UIPEthernet.h>
 #include <IRremote.h>
 
+#define SERVER_PORT 5544
 #define GET_PIN 6
 #define SEND_PIN 4
 #define ERROR_PIN 5
 #define IRRECV_PIN 7
 #define FACTOR 50
 
-EthernetServer server = EthernetServer(5544);
+EthernetServer server = EthernetServer(SERVER_PORT);
 EthernetClient client;
 
 Messenger messenger(client);
