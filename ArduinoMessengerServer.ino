@@ -104,7 +104,7 @@ void printRawCode() {
 
 void sendMessage(char * buttonId) {
   messenger.printPROGMEM(PUT);
-  messenger.print('\n');
+  messenger.print("\n");
   messenger.printPROGMEM(request_prefix);
   messenger.print(buttonId);
   messenger.printPROGMEM(value_prefix);
